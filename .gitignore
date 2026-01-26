@@ -1,0 +1,11 @@
+# Environments
+venv/
+env/
+.env
+
+# Python system files
+__pycache__/
+*.py[cod]
+
+# Large Model Weights
+model/*.safetensors
