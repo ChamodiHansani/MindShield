@@ -1,0 +1,18 @@
+.primary-btn {
+  padding: 15px 40px;
+  font-size: 1.2rem;
+  background-color: #38bdf8;
+  color: #0f172a;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+}
+
+.primary-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
+  background-color: #7dd3fc;
+}

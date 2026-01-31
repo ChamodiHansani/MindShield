@@ -1,0 +1,61 @@
+<div class="analysis-page">
+  <nav class="nav-header">
+    <button class="back-btn" routerLink="/">
+      <span class="icon">←</span> Back to Dashboard
+    </button>
+  </nav>
+
+  <main class="content-container animate-fade-in">
+    <header class="header-text">
+      <h2>MindShield <span class="highlight">Intelligence</span></h2>
+      <p>Evaluate psychological risk indicators with real-time AI analysis.</p>
+    </header>
+
+    <section class="analysis-card">
+      <form (ngSubmit)="onAnalyze()" #analysisForm="ngForm">
+        <div class="textarea-wrapper">
+          <textarea 
+            [(ngModel)]="userInput" 
+            name="userInput"
+            placeholder="Paste Sinhala text here..." 
+            (keydown.enter)="$event.preventDefault()"
+            required>
+          </textarea>
+        </div>
+        
+        <button 
+          type="submit" 
+          class="analyze-button"
+          [disabled]="isLoading || !userInput?.trim()">
+          <span *ngIf="!isLoading">Analyze Content</span>
+          <div *ngIf="isLoading" class="loader-container">
+            <span class="loader-dot"></span>
+            <span>Processing...</span>
+          </div>
+        </button>
+      </form>
+
+      <div *ngIf="analysisResult && !isLoading" class="results-area">
+        <div class="divider"></div>
+        
+        <div class="result-badge" [attr.data-risk]="analysisResult.prediction">
+          <div class="status-indicator"></div>
+          <div class="result-info">
+            <h3>{{ analysisResult.prediction }}</h3>
+            <p>Confidence Level: {{ analysisResult.confidence }}</p>
+          </div>
+        </div>
+
+        <div *ngIf="analysisResult.highlights?.length" class="xai-section">
+          <h4>Key Risk Indicators:</h4>
+          <div class="tag-cloud">
+            <span *ngFor="let h of analysisResult.highlights" class="word-tag">
+              <span class="word">{{ h.word }}</span>
+              <span class="score">{{ h.score | number:'1.1-1' }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
