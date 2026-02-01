@@ -1,13 +1,15 @@
+import re
 import torch
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import uvicorn
-import re
-import unicodedata
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from xai import explain_risky_words
+from preprocess import normalize_sinhala_singlish_v2
+
 
 app = FastAPI(title="MindShield Prediction + XAI Backend")
 
@@ -18,13 +20,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 MODEL_PATH = "./model"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 try:
     tokenizer = AutoTokenizer.from_pretrained(
         MODEL_PATH,
-        use_fast=True,               # ✅ IMPORTANT
+        use_fast=True,
         fix_mistral_regex=True
     )
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -41,8 +44,6 @@ except Exception as e:
     model = None
 
 
-from starlette.middleware.base import BaseHTTPMiddleware
-
 class FixJSONMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if request.method == "POST" and "/predict" in request.url.path:
@@ -58,23 +59,8 @@ class FixJSONMiddleware(BaseHTTPMiddleware):
 
         return await call_next(request)
 
+
 app.add_middleware(FixJSONMiddleware)
-
-
-def normalize_text(text):
-    if not isinstance(text, str):
-        return ""
-
-    text = re.sub(r"[\x00-\x1F\x7F-\x9F]", " ", text)
-    text = re.sub(r"\.{2,}", " ", text)
-
-    # ✅ prevent glue like "ඉන්නේ.මට"
-    text = re.sub(r"([.!?])", r"\1 ", text)
-
-    text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"[!?;:]", " ", text)
-    text = unicodedata.normalize("NFKC", text)
-    return text.strip()
 
 
 class PredictionRequest(BaseModel):
@@ -87,7 +73,7 @@ async def predict(request: PredictionRequest):
         if model is None or tokenizer is None:
             raise HTTPException(status_code=500, detail="Model not loaded")
 
-        norm_text = normalize_text(request.text)
+        norm_text = normalize_sinhala_singlish_v2(request.text)
 
         if not norm_text or len(norm_text) < 3:
             return {
@@ -111,7 +97,7 @@ async def predict(request: PredictionRequest):
             conf, pred = torch.max(probs, dim=-1)
 
         labels = {0: "High Risk", 1: "Medium Risk", 2: "No Risk"}
-        label = labels[pred.item()]
+        label = labels.get(pred.item(), "No Risk")
 
         response = {
             "prediction": label,
@@ -127,12 +113,14 @@ async def predict(request: PredictionRequest):
                 model=model,
                 device=device,
                 target_label=pred.item(),
-                top_k=10,
-                max_length=128
+                top_k=100,
+                max_length=512
             )
 
         return response
 
+    except HTTPException:
+        raise
     except Exception as e:
         print("Error:", e)
         raise HTTPException(status_code=500, detail=str(e))
