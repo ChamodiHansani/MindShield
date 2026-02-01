@@ -1,4 +1,3 @@
-<!-- Updated risk-display.html with XAI Highlighter integration -->
 <div class="analysis-page">
   <nav class="nav-header">
     <button class="back-btn" routerLink="/">
@@ -18,8 +17,7 @@
           <textarea 
             [(ngModel)]="userInput" 
             name="userInput"
-            placeholder="Paste Sinhala text here..." 
-            (keydown.enter)="$event.preventDefault()"
+            placeholder="Paste text here for analysis..." 
             required>
           </textarea>
         </div>
@@ -47,12 +45,52 @@
           </div>
         </div>
 
-        <!-- XAI Highlighter Component Integration -->
         <app-xai-highlighter
           [normalizedText]="analysisResult.normalized_text"
           [highlights]="analysisResult.highlights"
           [riskLevel]="analysisResult.prediction">
         </app-xai-highlighter>
+
+        <div *ngIf="analysisResult.prediction !== 'No Risk'" class="support-resources animate-slide-up">
+  <div class="support-header">
+    <span class="heart-icon">♥</span>
+    <h4>Support is Available</h4>
+  </div>
+  
+  <div class="helpline-grid">
+    <div class="helpline-card">
+      <div class="helpline-info">
+        <h5>Sumithrayo</h5>
+        <p>Confidential emotional support, available 365 days a year.</p>
+      </div>
+      <div class="helpline-action">
+        <span class="phone-number">011 269 6666</span>
+        <div class="action-links">
+          <a href="https://srilankasumithrayo.lk/" target="_blank" class="web-link">Visit Website</a>
+          <a href="tel:0112696666" class="call-btn">Call Now</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="helpline-card">
+      <div class="helpline-info">
+        <h5>CCC Line</h5>
+        <p>24/7 free crisis support and relationship counseling.</p>
+      </div>
+      <div class="helpline-action">
+        <span class="phone-number">1333</span>
+        <div class="action-links">
+          <a href="https://1333.lk/" target="_blank" class="web-link">Visit Website</a>
+          <a href="tel:1333" class="call-btn">Call Now</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer-box">
+    <p>If you are in immediate danger, please contact local emergency services or visit the nearest hospital.</p>
+  </div>
+</div>
       </div>
     </section>
   </main>
