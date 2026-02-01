@@ -4,16 +4,23 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { RiskResult } from '../../models/risk-result.model';
 import { RouterLink } from '@angular/router';
+import { XaiHighlighter } from '../xai-highlighter/xai-highlighter';
+
 
 @Component({
   selector: 'app-risk-display',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink], 
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RouterLink,
+    XaiHighlighter // Add to imports array
+  ], 
   templateUrl: './risk-display.html',
   styleUrl: './risk-display.css',
 })
 export class RiskDisplay {
-userInput: string = '';
+  userInput: string = '';
   analysisResult?: RiskResult;
   isLoading: boolean = false;
 

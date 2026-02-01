@@ -1,1 +1,123 @@
-<p>xai-highlighter works!</p>
+<div class="xai-container">
+  <!-- Trigger Button (only for Medium/High Risk) -->
+  <button
+    class="why-button"
+    (click)="openPopup()"
+    *ngIf="riskLevel === 'Medium Risk' || riskLevel === 'High Risk'"
+    type="button">
+    <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+    <span>Why did AI flag this?</span>
+  </button>
+
+  <!-- Popup Modal -->
+  <div
+    class="popup-overlay"
+    *ngIf="isPopupOpen"
+    (click)="onBackdropClick($event)"
+    (keydown)="onKeyDown($event)"
+    tabindex="0">
+   
+    <div class="popup-content">
+      <!-- Popup Header -->
+      <header class="popup-header">
+        <div class="header-left">
+          <svg class="brain-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 2a10 10 0 0 1 7.35 16.76"></path>
+            <path d="M12 2C7.58 2 4 5.58 4 10c0 2.03.76 3.88 2 5.3"></path>
+            <path d="M12 12c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"></path>
+          </svg>
+          <div>
+            <h3>AI Explainability</h3>
+            <p class="subtitle">Risk indicators detected in your text</p>
+          </div>
+        </div>
+       
+        <button
+          class="close-button"
+          (click)="closePopup()"
+          type="button"
+          aria-label="Close popup">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Risk Level Badge -->
+      <div class="risk-badge" [attr.data-risk]="riskLevel">
+        <div class="badge-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div>
+          <strong>{{ riskLevel }}</strong>
+          <span class="badge-description">
+            {{ highlights?.length || 0 }} risk indicator(s) found
+          </span>
+        </div>
+      </div>
+
+      <!-- Explanation Text -->
+      <div class="explanation-section">
+        <h4>Understanding the Analysis</h4>
+        <p>
+          The AI model identified specific words and phrases in your text that correlate with
+          psychological distress patterns. Words are highlighted below based on their risk
+          significance, with darker shades indicating higher concern levels.
+        </p>
+      </div>
+
+      <!-- Highlighted Text Display -->
+      <div class="highlighted-text-container">
+        <div class="legend">
+          <span class="legend-item">
+            <span class="legend-dot intensity-high"></span>
+            High significance (≥0.8)
+          </span>
+          <span class="legend-item">
+            <span class="legend-dot intensity-medium"></span>
+            Medium significance (0.5-0.8)
+          </span>
+          <span class="legend-item">
+            <span class="legend-dot intensity-low"></span>
+            Lower significance (&lt;0.5)
+          </span>
+        </div>
+        <div
+          class="highlighted-text"
+          [innerHTML]="highlightedHtml"
+          [class.sinhala-text]="true">
+        </div>
+      </div>
+
+      <!-- Disclaimer -->
+      <div class="disclaimer">
+        <svg class="info-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <p>
+          This analysis is for informational purposes only and should not replace professional
+          mental health assessment. If you're experiencing distress, please consult a qualified
+          mental health professional.
+        </p>
+      </div>
+
+      <!-- Close Footer -->
+      <footer class="popup-footer">
+        <button class="secondary-button" (click)="closePopup()" type="button">
+          Close
+        </button>
+      </footer>
+    </div>
+  </div>
+</div>

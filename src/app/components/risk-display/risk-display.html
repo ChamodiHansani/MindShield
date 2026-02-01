@@ -1,3 +1,4 @@
+<!-- Updated risk-display.html with XAI Highlighter integration -->
 <div class="analysis-page">
   <nav class="nav-header">
     <button class="back-btn" routerLink="/">
@@ -46,15 +47,12 @@
           </div>
         </div>
 
-        <div *ngIf="analysisResult.highlights?.length" class="xai-section">
-          <h4>Key Risk Indicators:</h4>
-          <div class="tag-cloud">
-            <span *ngFor="let h of analysisResult.highlights" class="word-tag">
-              <span class="word">{{ h.word }}</span>
-              <span class="score">{{ h.score | number:'1.1-1' }}</span>
-            </span>
-          </div>
-        </div>
+        <!-- XAI Highlighter Component Integration -->
+        <app-xai-highlighter
+          [normalizedText]="analysisResult.normalized_text"
+          [highlights]="analysisResult.highlights"
+          [riskLevel]="analysisResult.prediction">
+        </app-xai-highlighter>
       </div>
     </section>
   </main>
