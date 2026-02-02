@@ -10,7 +10,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from xai import explain_risky_words
 from preprocess import normalize_sinhala_singlish_v2
 
-
 app = FastAPI(title="MindShield Prediction + XAI Backend")
 
 app.add_middleware(
@@ -19,7 +18,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 MODEL_PATH = "./model"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -46,7 +44,7 @@ except Exception as e:
 
 class FixJSONMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        if request.method == "POST" and "/predict" in request.url.path:
+        if request.method == "POST" and ("/predict" in request.url.path or "/explain" in request.url.path):
             body = await request.body()
             body_str = body.decode("utf-8", errors="ignore")
 
@@ -59,12 +57,16 @@ class FixJSONMiddleware(BaseHTTPMiddleware):
 
         return await call_next(request)
 
-
 app.add_middleware(FixJSONMiddleware)
 
 
 class PredictionRequest(BaseModel):
     text: str
+
+
+class ExplainRequest(BaseModel):
+    text: str
+    target_label: int  # pass pred label index from /predict response (0/1/2)
 
 
 @app.post("/predict")
@@ -80,7 +82,8 @@ async def predict(request: PredictionRequest):
                 "prediction": "No Risk",
                 "confidence": "0%",
                 "normalized_text": norm_text,
-                "highlights": []
+                "target_label": 2,       
+                "highlights": []         
             }
 
         inputs = tokenizer(
@@ -99,30 +102,52 @@ async def predict(request: PredictionRequest):
         labels = {0: "High Risk", 1: "Medium Risk", 2: "No Risk"}
         label = labels.get(pred.item(), "No Risk")
 
-        response = {
+        return {
             "prediction": label,
             "confidence": f"{round(conf.item() * 100, 2)}%",
             "normalized_text": norm_text,
-            "highlights": []
+            "target_label": pred.item(),  # send this so frontend can request explain
+            "highlights": []              # empty on purpose
         }
-
-        if label != "No Risk":
-            response["highlights"] = explain_risky_words(
-                text=norm_text,
-                tokenizer=tokenizer,
-                model=model,
-                device=device,
-                target_label=pred.item(),
-                top_k=100,
-                max_length=512
-            )
-
-        return response
 
     except HTTPException:
         raise
     except Exception as e:
         print("Error:", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/explain")
+async def explain(request: ExplainRequest):
+    try:
+        if model is None or tokenizer is None:
+            raise HTTPException(status_code=500, detail="Model not loaded")
+
+        norm_text = normalize_sinhala_singlish_v2(request.text)
+
+        if not norm_text or len(norm_text) < 3:
+            return {"normalized_text": norm_text, "highlights": []}
+
+        # If user asks explain for "No Risk", return empty to save time
+        if request.target_label == 2:
+            return {"normalized_text": norm_text, "highlights": []}
+
+        highlights = explain_risky_words(
+            text=norm_text,
+            tokenizer=tokenizer,
+            model=model,
+            device=device,
+            target_label=request.target_label,
+            top_k=60,           # reduce from 100 to speed up
+            max_length=384      # reduce length for speed (try 256/384/512)
+        )
+
+        return {"normalized_text": norm_text, "highlights": highlights}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("Explain error:", e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
