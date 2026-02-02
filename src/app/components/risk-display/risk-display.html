@@ -46,10 +46,12 @@
         </div>
 
         <app-xai-highlighter
-          [normalizedText]="analysisResult.normalized_text"
-          [highlights]="analysisResult.highlights"
-          [riskLevel]="analysisResult.prediction">
-        </app-xai-highlighter>
+  [normalizedText]="analysisResult.normalized_text"
+  [highlights]="analysisResult.highlights"
+  [riskLevel]="analysisResult.prediction"
+  [targetLabel]="analysisResult.target_label">
+</app-xai-highlighter>
+
 
         <div *ngIf="analysisResult.prediction !== 'No Risk'" class="support-resources animate-slide-up">
   <div class="support-header">

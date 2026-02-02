@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ApiService } from '../../services/api.service';
 
 interface Highlight {
   word: string;
@@ -19,13 +20,17 @@ export class XaiHighlighter implements OnInit, OnChanges {
   @Input() normalizedText: string = '';
   @Input() highlights: Highlight[] = [];
   @Input() riskLevel: string = '';
- 
+  @Input() targetLabel: number = 2;
+
   isPopupOpen: boolean = false;
   highlightedHtml: SafeHtml = '';
- 
+  isExplaining: boolean = false;   
+  explainError: string = '';
+
   constructor(
     private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private apiService: ApiService
   ) {}
 
   ngOnInit() {
@@ -39,11 +44,43 @@ export class XaiHighlighter implements OnInit, OnChanges {
   }
 
   openPopup() {
+  // Only for Medium/High
+  if (!(this.riskLevel === 'Medium Risk' || this.riskLevel === 'High Risk')) {
+    return;
+  }
+
+  // If already have highlights, open instantly
+  if (this.highlights && this.highlights.length > 0) {
     this.isPopupOpen = true;
     document.body.style.overflow = 'hidden';
-    // Force re-generation and detection when popup opens (fixes any timing issues)
     this.updateHighlightedText();
+    return;
   }
+
+  // Otherwise: fetch first, then open
+  this.isExplaining = true;
+  this.explainError = '';
+  this.cdr.detectChanges();
+
+  this.apiService.explainText(this.normalizedText, this.targetLabel).subscribe({
+    next: (res) => {
+      this.highlights = res.highlights as any;
+      this.isExplaining = false;
+
+      // ✅ open only AFTER highlights loaded
+      this.isPopupOpen = true;
+      document.body.style.overflow = 'hidden';
+      this.updateHighlightedText();
+    },
+    error: (err) => {
+      console.error(err);
+      this.isExplaining = false;
+      this.explainError = 'Could not load explainability right now.';
+      this.cdr.detectChanges();
+    }
+  });
+}
+
 
   closePopup() {
     this.isPopupOpen = false;
@@ -53,7 +90,7 @@ export class XaiHighlighter implements OnInit, OnChanges {
   private updateHighlightedText() {
     const html = this.getHighlightedText();
     this.highlightedHtml = this.sanitizer.bypassSecurityTrustHtml(html);
-    this.cdr.detectChanges(); // Ensures immediate render
+    this.cdr.detectChanges();
   }
 
   getHighlightedText(): string {
@@ -69,30 +106,26 @@ export class XaiHighlighter implements OnInit, OnChanges {
 
     const processedWords = new Set<string>();
 
-   sortedHighlights.forEach((highlight) => {
-  const word = highlight.word.trim();
-  const score = highlight.score;
-  if (!word || processedWords.has(word)) return;
+    sortedHighlights.forEach((highlight) => {
+      const word = highlight.word.trim();
+      const score = highlight.score;
+      if (!word || processedWords.has(word)) return;
 
-  const intensityClass = this.getIntensityClass(score);
-  
-  // 1. Escape the word for RegEx
-  let pattern = this.escapeRegExp(word);
+      const intensityClass = this.getIntensityClass(score);
 
-  // 2. Replace escaped spaces with a "match any connector" pattern
-  // This matches spaces, underscores, or dashes: [\s\-_]+
-  pattern = pattern.replace(/\s+/g, '[\\s\\-_]+');
+      let pattern = this.escapeRegExp(word);
+      pattern = pattern.replace(/\s+/g, '[\\s\\-_]+');
 
-  const regex = new RegExp(`(${pattern})`, 'g');
+      const regex = new RegExp(`(${pattern})`, 'g');
 
-  if (highlightedText.match(regex)) {
-    highlightedText = highlightedText.replace(
-      regex,
-      `<mark class="highlight ${intensityClass}" data-score="${score.toFixed(2)}" title="Risk score: ${score.toFixed(2)}">$1</mark>`
-    );
-  }
-  processedWords.add(word);
-});
+      if (highlightedText.match(regex)) {
+        highlightedText = highlightedText.replace(
+          regex,
+          `<mark class="highlight ${intensityClass}" data-score="${score.toFixed(2)}" title="Risk score: ${score.toFixed(2)}">$1</mark>`
+        );
+      }
+      processedWords.add(word);
+    });
 
     return highlightedText;
   }

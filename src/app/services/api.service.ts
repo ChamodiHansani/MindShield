@@ -4,13 +4,12 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { RiskResult } from '../models/risk-result.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ApiService {
-  private apiUrl = 'http://127.0.0.1:8000/predict'; 
+  private predictUrl = 'http://127.0.0.1:8000/predict';
+  private explainUrl = 'http://127.0.0.1:8000/explain';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   analyzeText(userInput: string): Observable<RiskResult> {
     const headers = new HttpHeaders({
@@ -18,25 +17,26 @@ export class ApiService {
       'Content-Type': 'application/json'
     });
 
-    const body = { text: userInput };
+    return this.http.post<RiskResult>(this.predictUrl, { text: userInput }, { headers })
+      .pipe(timeout(30000), catchError(this.handleError));
+  }
 
-    return this.http.post<RiskResult>(this.apiUrl, body, { headers })
-      .pipe(
-        timeout(30000), 
-        catchError(this.handleError)
-      );
+  explainText(text: string, target_label: number) {
+    const headers = new HttpHeaders({
+      'accept': 'application/json',
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.post<{ normalized_text: string; highlights: any[] }>(
+      this.explainUrl,
+      { text, target_label },
+      { headers }
+    ).pipe(timeout(60000), catchError(this.handleError));
   }
 
   private handleError(error: HttpErrorResponse) {
     console.error('API Service Error:', error);
-    
-    let errorMessage = 'An unknown error occurred!';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-    }
-    
+    const errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
     return throwError(() => new Error(errorMessage));
   }
 }
