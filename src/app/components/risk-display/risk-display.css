@@ -13,17 +13,34 @@
   padding: 0;
 }
 
+/* Update these sections in your risk-display.css */
+
 .analysis-page {
   background: #f5f0eb;
-  min-height: 100vh;
+  /* Use 100% of the parent (page-wrapper) height */
+  height: 100%; 
   width: 100%;
   color: #3b3530;
   font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
-  position: relative;
+  /* Allow only the content to scroll if it overflows */
+  overflow-y: auto; 
   overflow-x: hidden;
 }
+
+.content-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  /* Change justify-content to flex-start so content starts at top on long results */
+  justify-content: flex-start; 
+  align-items: center;
+  width: 100%;
+  padding: 40px 20px;
+}
+
+/* Ensure the main shell is locked in styles.css */
 
 /* 2. Navigation */
 .nav-header {
@@ -55,17 +72,6 @@
   border-color: #5c8a6e;
   transform: translateX(-5px);
   box-shadow: 0 4px 12px rgba(92, 138, 110, 0.15);
-}
-
-/* 3. Main Content */
-.content-container {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  padding: 60px 20px;
 }
 
 .header-text {
@@ -308,13 +314,22 @@ textarea:focus {
 }
 
 /* 8. Loader & Animations */
+.loader-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Space between dot and text */
+}
+
 .loader-dot {
-  width: 18px;
-  height: 18px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  width: 18px; /* Fixed width */
+  height: 18px; /* Fixed height */
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+  border-radius: 50%; /* Ensures perfect circle */
+  flex-shrink: 0; /* Prevents squishing by flexbox */
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {

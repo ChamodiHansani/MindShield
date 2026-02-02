@@ -7,3 +7,8 @@ html, body {
   overflow-y: auto; /* Allow vertical scrolling */
   overflow-x: hidden; /* Prevent side-scrolling */
 }
+
+.page-wrapper {
+  height: calc(100vh - 70px); /* Total height minus Navbar height */
+  overflow-y: auto; /* Only allow scrolling inside the content if needed */
+}
