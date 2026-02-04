@@ -10,6 +10,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from xai import explain_risky_words
 from preprocess import normalize_sinhala_singlish_v2
 
+# FastAPI initialization with CORS middleware for cross-origin requests
 app = FastAPI(title="MindShield Prediction + XAI Backend")
 
 app.add_middleware(
@@ -19,6 +20,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Load the tokenizer and model
+# If failed, set model and tokenizer to None
 MODEL_PATH = "./model"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -34,14 +37,14 @@ try:
     )
     model.eval()
     model.to(device)
-    print(f"✓ Model loaded on {device}")
-    print("✓ Fast tokenizer:", tokenizer.is_fast)
+    print(f"Model loaded on {device}")
+    print("Fast tokenizer:", tokenizer.is_fast)
 except Exception as e:
-    print("✗ Model load failed:", e)
+    print("Model load failed:", e)
     tokenizer = None
     model = None
 
-
+# Middleware to handle fixing JSON encoding for special characters like newlines
 class FixJSONMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if request.method == "POST" and ("/predict" in request.url.path or "/explain" in request.url.path):
@@ -68,7 +71,7 @@ class ExplainRequest(BaseModel):
     text: str
     target_label: int  # pass pred label index from /predict response (0/1/2)
 
-
+# Predict endpoint
 @app.post("/predict")
 async def predict(request: PredictionRequest):
     try:
@@ -116,7 +119,8 @@ async def predict(request: PredictionRequest):
         print("Error:", e)
         raise HTTPException(status_code=500, detail=str(e))
 
-
+# Explain endpoint: Provides an explanation for the predicted label, highlighting the words that contributed most
+# If the prediction is 'No Risk', returns empty highlights
 @app.post("/explain")
 async def explain(request: ExplainRequest):
     try:
@@ -155,6 +159,6 @@ async def explain(request: ExplainRequest):
 async def health():
     return {"status": "ok", "device": str(device)}
 
-
+# Run the FastAPI app on host 0.0.0.0, port 8000 with logging enabled
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

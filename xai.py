@@ -4,7 +4,7 @@ from preprocess import NOISE_TOKENS
 
 
 def looks_like_number(w: str) -> bool:
-    # If token contains any digit, ignore it (25, 25ක, 26යි, Rs500, 3rd etc.)
+    # If token contains any digit, ignore it
     return bool(re.search(r"\d", w))
 
 
