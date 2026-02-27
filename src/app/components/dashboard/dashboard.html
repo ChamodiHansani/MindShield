@@ -1,27 +1,104 @@
 <!-- dashboard.html -->
 <div class="dashboard-page">
 
-  <div class="dashboard-center">
+  <!-- ══ HERO SECTION ══ -->
+  <div class="hero-section">
 
-    <!-- Logo Badge -->
-    <!-- <div class="logo-badge">
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <rect width="28" height="28" rx="8" fill="#eef2ee"/>
-        <path d="M14 6 L20 9 L20 14 C20 18.5 17.5 22 14 23 C10.5 22 8 18.5 8 14 L8 9 Z" fill="none" stroke="#5c8a6e" stroke-width="1.8" stroke-linejoin="round"/>
-        <polyline points="11,14 13,16 17,11" fill="none" stroke="#5c8a6e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span class="logo-text">MindShield AI</span>
-    </div> -->
+    <!-- Background layer -->
+    <div class="hero-bg"></div>
 
-    <!-- Headline -->
-    <h1 class="hero-title">Your mind deserves to be <span class="highlight">heard.</span></h1>
+    <!-- Center content -->
+    <div class="dashboard-center">
 
-    <!-- Subtitle -->
-    <p class="hero-sub">Speak freely. Our AI is here to listen without judgment.</p>
+      <!-- Language badge -->
+      <div class="lang-badge">
+        <div class="badge-dot"></div>
+        <span>Sinhala + Singlish Mental Health Risk Detection</span>
+      </div>
 
-    <!-- CTA -->
-    <button class="btn-start" routerLink="/analyze">Start Risk Detection</button>
+      <!-- Headline -->
+      <h1 class="hero-title">
+        Your mind deserves to be <span class="highlight">heard.</span>
+      </h1>
 
-  </div>
+      <!-- Subtitle -->
+      <p class="hero-sub">Speak freely. Our AI is here to listen without judgment.</p>
+
+      <!-- CTA -->
+      <button class="btn-start" routerLink="/analyze">Start Risk Detection</button>
+
+    </div>
+
+    <!-- Stats strip -->
+    <div class="stats-strip">
+      <div class="stat-item">
+        <div class="stat-num">80%+</div>
+        <div class="stat-label">Detection Accuracy</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-num">3</div>
+        <div class="stat-label">Risk Levels</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-num">XAI</div>
+        <div class="stat-label">Explainable Results</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Anonymous</div>
+      </div>
+    </div>
+
+    <!-- Scroll cue -->
+    <div class="scroll-cue">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+
+  </div><!-- /hero-section -->
+
+  <!-- ══ FEATURES SECTION ══ -->
+  <div class="features-section">
+
+    <p class="features-label">What We Offer</p>
+    <h2 class="features-title">Built for Sri Lanka's unique linguistic reality</h2>
+
+    <div class="cards-grid">
+
+      <div class="feature-card">
+        <div class="card-icon">🔍</div>
+        <h3>Risk Classification</h3>
+        <p>Classifies Sinhala + Singlish posts into High, Medium, or No Risk levels using fine-tuned transformer-based NLP models.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon">💡</div>
+        <h3>Explainable AI</h3>
+        <p>Integrated Gradients highlight influential words and phrases in a post, helping counselors and NGOs better understand the model's risk predictions.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon">🔒</div>
+        <h3>Privacy First</h3>
+        <p>All posts are processed anonymously. No personal data is stored. Ethical AI design compliant with mental health research standards.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-icon">🤝</div>
+        <h3>Local Support Links</h3>
+        <p>High-risk detections automatically surface contacts for Sumithrayo and CCCline - real Sri Lankan helplines, right when needed.</p>
+      </div>
+
+    </div>
+  </div><!-- /features-section -->
+
+  <!-- Disclaimer -->
+  <p class="disclaimer">
+    ⚠ MindShield is an early-detection support tool, not a clinical diagnostic system.
+    Always consult a qualified mental health professional.
+  </p>
 
 </div>
