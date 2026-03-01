@@ -57,4 +57,10 @@ onAnalyze() {
     });
 }
 
+onInputChange() {
+  if (!this.userInput?.trim()) {
+    this.analysisResult = undefined;
+  }
+}
+
 }

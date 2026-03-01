@@ -67,7 +67,7 @@ export class XaiHighlighter implements OnInit, OnChanges {
       this.highlights = res.highlights as any;
       this.isExplaining = false;
 
-      // ✅ open only AFTER highlights loaded
+      // open only AFTER highlights loaded
       this.isPopupOpen = true;
       document.body.style.overflow = 'hidden';
       this.updateHighlightedText();
@@ -94,41 +94,42 @@ export class XaiHighlighter implements OnInit, OnChanges {
   }
 
   getHighlightedText(): string {
-    if (!this.normalizedText) return this.normalizedText || '';
-    if (!this.highlights || this.highlights.length === 0) return this.normalizedText;
+  if (!this.normalizedText) return '';
+  if (!this.highlights || this.highlights.length === 0) return this.normalizedText;
 
-    let highlightedText = this.normalizedText;
+  // 1. Create a Map for quick lookup of word -> score
+  const scoreMap = new Map<string, number>();
+  this.highlights.forEach(h => {
+    // Normalize word for matching (lowercase and trim)
+    const key = h.word.trim().toLowerCase();
+    scoreMap.set(key, h.score);
+  });
 
-    const sortedHighlights = [...this.highlights].sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return b.word.length - a.word.length;
-    });
+  // 2. Split the text but KEEP the delimiters (spaces/punctuation) 
+  // This regex handles English and Sinhala (including ZWJ)
+  const tokens = this.normalizedText.split(/(\s+|[.,!?;()]+)/);
 
-    const processedWords = new Set<string>();
-
-    sortedHighlights.forEach((highlight) => {
-      const word = highlight.word.trim();
-      const score = highlight.score;
-      if (!word || processedWords.has(word)) return;
-
-      const intensityClass = this.getIntensityClass(score);
-
-      let pattern = this.escapeRegExp(word);
-      pattern = pattern.replace(/\s+/g, '[\\s\\-_]+');
-
-      const regex = new RegExp(`(${pattern})`, 'g');
-
-      if (highlightedText.match(regex)) {
-        highlightedText = highlightedText.replace(
-          regex,
-          `<mark class="highlight ${intensityClass}" data-score="${score.toFixed(2)}" title="Risk score: ${score.toFixed(2)}">$1</mark>`
-        );
+  // 3. Map tokens to highlighted HTML
+  const result = tokens.map(token => {
+    const cleanToken = token.trim().toLowerCase();
+    
+    // Check if this specific token is a risky word
+    if (scoreMap.has(cleanToken)) {
+      const score = scoreMap.get(cleanToken)!;
+      
+      // Only highlight if the score is actually risky (e.g., > 0.1)
+      if (score > 0.1) {
+        const intensityClass = this.getIntensityClass(score);
+        return `<mark class="highlight ${intensityClass}" title="Risk score: ${score.toFixed(2)}">${token}</mark>`;
       }
-      processedWords.add(word);
-    });
+    }
+    
+    // Otherwise, return the plain token (noise or non-risky word)
+    return token;
+  });
 
-    return highlightedText;
-  }
+  return result.join('');
+}
 
   private escapeRegExp(text: string): string {
     return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

@@ -270,17 +270,25 @@ textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
 }
 
 .web-link {
-  font-size: 0.85rem;
-  color: #7a7068;
-  text-decoration: underline;
-  transition: color 0.2s;
+  background-color: transparent;
+  color: #5c8a6e;
+  padding: 0.6rem 1.4rem;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 2px solid #5c8a6e;
+  transition: all 0.2s;
+  display: inline-block;
 }
 
 .web-link:hover {
-  color: #5c8a6e;
+  background-color: #5c8a6e;
+  color: #ffffff;
 }
 
 .call-btn {
