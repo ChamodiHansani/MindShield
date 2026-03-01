@@ -10,7 +10,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from xai import explain_risky_words
 from preprocess import normalize_sinhala_singlish_v2
 
-# FastAPI initialization with CORS middleware for cross-origin requests
 app = FastAPI(title="MindShield Prediction + XAI Backend")
 
 app.add_middleware(
@@ -20,8 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load the tokenizer and model
-# If failed, set model and tokenizer to None
 MODEL_PATH = "./model"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -38,13 +35,12 @@ try:
     model.eval()
     model.to(device)
     print(f"Model loaded on {device}")
-    print("Fast tokenizer:", tokenizer.is_fast)
 except Exception as e:
     print("Model load failed:", e)
     tokenizer = None
     model = None
 
-# Middleware to handle fixing JSON encoding for special characters like newlines
+# Middleware to fix JSON encoding for special characters
 class FixJSONMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if request.method == "POST" and ("/predict" in request.url.path or "/explain" in request.url.path):
@@ -57,21 +53,17 @@ class FixJSONMiddleware(BaseHTTPMiddleware):
                 return f"\"{txt}\""
 
             request._body = re.sub(r"\"([^\"]*)\"", fix, body_str).encode("utf-8")
-
         return await call_next(request)
 
 app.add_middleware(FixJSONMiddleware)
 
-
 class PredictionRequest(BaseModel):
     text: str
 
-
 class ExplainRequest(BaseModel):
     text: str
-    target_label: int  # pass pred label index from /predict response (0/1/2)
+    target_label: int 
 
-# Predict endpoint
 @app.post("/predict")
 async def predict(request: PredictionRequest):
     try:
@@ -85,8 +77,8 @@ async def predict(request: PredictionRequest):
                 "prediction": "No Risk",
                 "confidence": "0%",
                 "normalized_text": norm_text,
-                "target_label": 2,       
-                "highlights": []         
+                "target_label": 2, 
+                "highlights": [] 
             }
 
         inputs = tokenizer(
@@ -109,56 +101,47 @@ async def predict(request: PredictionRequest):
             "prediction": label,
             "confidence": f"{round(conf.item() * 100, 2)}%",
             "normalized_text": norm_text,
-            "target_label": pred.item(),  # send this so frontend can request explain
-            "highlights": []              # empty on purpose
+            "target_label": pred.item(),
+            "highlights": [] 
         }
 
-    except HTTPException:
-        raise
     except Exception as e:
         print("Error:", e)
         raise HTTPException(status_code=500, detail=str(e))
 
-# Explain endpoint: Provides an explanation for the predicted label, highlighting the words that contributed most
-# If the prediction is 'No Risk', returns empty highlights
 @app.post("/explain")
 async def explain(request: ExplainRequest):
     try:
         if model is None or tokenizer is None:
             raise HTTPException(status_code=500, detail="Model not loaded")
 
+        # Get the normalized text (contains all words, including noise)
         norm_text = normalize_sinhala_singlish_v2(request.text)
 
-        if not norm_text or len(norm_text) < 3:
+        if not norm_text or len(norm_text) < 3 or request.target_label == 2:
             return {"normalized_text": norm_text, "highlights": []}
 
-        # If user asks explain for "No Risk", return empty to save time
-        if request.target_label == 2:
-            return {"normalized_text": norm_text, "highlights": []}
-
+        # IMPORTANT: explain_risky_words will now return a score for EVERY word 
+        # in the paragraph so the UI can reconstruct the full text.
         highlights = explain_risky_words(
             text=norm_text,
             tokenizer=tokenizer,
             model=model,
             device=device,
             target_label=request.target_label,
-            top_k=60,           # reduce from 100 to speed up
-            max_length=384      # reduce length for speed (try 256/384/512)
+            top_k=150,           # Increased to accommodate longer paragraphs
+            max_length=256       # Reduced to 256 to prevent gradient dilution
         )
 
         return {"normalized_text": norm_text, "highlights": highlights}
 
-    except HTTPException:
-        raise
     except Exception as e:
         print("Explain error:", e)
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/health")
 async def health():
     return {"status": "ok", "device": str(device)}
 
-# Run the FastAPI app on host 0.0.0.0, port 8000 with logging enabled
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

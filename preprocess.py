@@ -1,7 +1,8 @@
 import re
 import unicodedata
 
-# Shared noise tokens (stopwords / fillers / family-role words you don't want as "risky")
+# Shared noise tokens 
+# These are kept here so xai.py can reference them to set their highlight score to 0
 NOISE_TOKENS = {
     "ට", "ද", "ත්", "එත්", "සහ", "නේද", "මන්", "මම", "ඔයා", "ඔබ", "අපි", "අපේ", "මේක",
     "eka", "meka", "oya", "oba", "api", "ape", "dan", "ai", "one", "ona", "kiyala", "wage",
@@ -9,15 +10,21 @@ NOISE_TOKENS = {
     "amma", "appa", "appachchi", "thaththa", "taththa", "bf", "gf", "bro", "sis", "mn", "mata", "එයා", "කුත්", 
 }
 
-
 def normalize_sinhala_singlish_v2(text: str) -> str:
+    """
+    Standardizes text for the model while preserving the full paragraph structure.
+    Fixes the 'ප්‍රශ්නේ' splitting issue by using Unicode normalization.
+    """
     if not isinstance(text, str):
         return ""
 
-    # unicode normalize + lowercase
+    # 1. Unicode Normalize (NFKC) + Lowercase
+    # This is CRITICAL. It ensures that combined characters like 'ප්‍ර' 
+    # are treated as stable units and won't be split by regex later.
     text = unicodedata.normalize("NFKC", text.lower())
 
-    # --- Variant mapping (Singlish) ---
+    # 2. Variant mapping (Singlish)
+    # We join phrases with underscores so the XAI treats 'jeewithe epa' as one highlight block
     SINGLISH_VARIANTS = [
         (r"\b(marenne|maranne|marenawa|merenna)\b", "marenna"),
         (r"\b(jeewithe\s*epa|jeewithe\s*epawela)\b", "jeewithe_epa"),
@@ -33,7 +40,7 @@ def normalize_sinhala_singlish_v2(text: str) -> str:
         (r"\b(mage\s*hitha\s*ridena(wa)?|hitha\s*ridena(wa)?)\b", "hitha_ridenawa"),
     ]
 
-    # --- Variant mapping (Sinhala) ---
+    # 3. Variant mapping (Sinhala)
     SINHALA_VARIANTS = [
         (r"(මැරෙන්න|මැරෙනවා|මරන්න|මැරුණා)", "මැරෙන්න"),
         (r"ජීවිතේ\s*එපා", "ජීවිතේ_එපා"),
@@ -62,13 +69,7 @@ def normalize_sinhala_singlish_v2(text: str) -> str:
     for pattern, standard in SINHALA_VARIANTS:
         text = re.sub(pattern, standard, text)
 
-    # -----------------------------
-    # Remove NOISE_TOKENS after variant standardization
-    # -----------------------------
-    words = [w for w in text.split() if w not in NOISE_TOKENS]
-    text = " ".join(words)
-
-    # --- Generalization rules ---
+    # --- Generalization rules (Singlish) ---
     SINGLISH_RULES = [
         (r"\b(ba|baa+|baha)\b", "baha"),
         (r"\b(epa|epaa+)\b", "epa"),
@@ -83,6 +84,7 @@ def normalize_sinhala_singlish_v2(text: str) -> str:
         (r"\b(bari|beri)\b", "bari"),
     ]
 
+    # --- Generalization rules (Sinhala) ---
     SINHALA_RULES = [
         (r"(බෑ|බැ|බැහැ)", "බැහැ"),
         (r"එපා+", "එපා"),
@@ -99,7 +101,9 @@ def normalize_sinhala_singlish_v2(text: str) -> str:
     for pattern, repl in SINHALA_RULES:
         text = re.sub(pattern, repl, text)
 
-    # remove urls, normalize spaces
+    # 4. Remove URLs and normalize spaces
+    # NOTE: We are NOT removing NOISE_TOKENS here anymore.
     text = re.sub(r"http\S+|www\S+|https\S+", "", text)
     text = re.sub(r"\s+", " ", text).strip()
+    
     return text
