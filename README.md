@@ -1,4 +1,5 @@
 🛡️ MindShield
+
 Early Detection of Mental Health Risks from Sinhala + Singlish Social Media Posts
 MindShield is an AI-driven solution designed to identify mental health risks in code-mixed (Sinhala and Singlish) social media content. By leveraging Deep Learning and Axiomatic Explainability, the system provides transparent risk assessments to assist community members and mental health professionals.
 
