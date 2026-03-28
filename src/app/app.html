@@ -1,4 +1,4 @@
-<nav class="navbar">
+<nav class="navbar" [class.scrolled]="isScrolled">
   <div class="nav-container">
     <div class="logo-badge" routerLink="/">
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
@@ -12,7 +12,11 @@
 
 <ul class="nav-links">
   <li>
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+    <a routerLink="/" routerLinkActive="active"
+       [routerLinkActiveOptions]="{exact: true}">Home</a>
+  </li>
+  <li>
+    <a routerLink="/features" routerLinkActive="active">Features</a>
   </li>
   <li>
     <a routerLink="/analyze" routerLinkActive="active">Intelligence</a>
