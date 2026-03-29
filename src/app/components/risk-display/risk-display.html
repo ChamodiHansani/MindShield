@@ -1,29 +1,18 @@
 <div class="analysis-page">
-  <!-- <nav class="nav-header">
-    <button class="back-btn" routerLink="/">
-      <span class="icon">←</span> Back to Dashboard
-    </button>
-  </nav> -->
-
   <main class="content-container animate-fade-in">
-    <!-- <header class="header-text">
-      <h2>MindShield <span class="highlight">Intelligence</span></h2>
-      <p>Evaluate psychological risk indicators with real-time AI analysis.</p>
-    </header> -->
-
     <section class="analysis-card">
       <form (ngSubmit)="onAnalyze()" #analysisForm="ngForm">
         <div class="textarea-wrapper">
           <textarea 
-  [(ngModel)]="userInput" 
-  name="userInput"
-  (input)="onInputChange()"
-  placeholder="Paste text here for analysis..." 
-  required>
-</textarea>
+            [(ngModel)]="userInput" 
+            name="userInput"
+            (input)="onInputChange()"
+            placeholder="Paste text here for analysis..." 
+            required>
+          </textarea>
         </div>
 
-        <button type="submit" class="analyze-button" [disabled]="isLoading || !userInput?.trim()">
+        <button type="submit" class="analyze-button" [disabled]="isLoading || !userInput.trim()">
           <span *ngIf="!isLoading">Analyze Content</span>
           <div *ngIf="isLoading" class="loader-container">
             <span class="loader-dot"></span>
@@ -43,10 +32,12 @@
           </div>
         </div>
 
-        <app-xai-highlighter [normalizedText]="analysisResult.normalized_text" [highlights]="analysisResult.highlights"
-          [riskLevel]="analysisResult.prediction" [targetLabel]="analysisResult.target_label">
+        <app-xai-highlighter
+          [normalizedText]="analysisResult.normalized_text"
+          [highlights]="analysisResult.highlights"
+          [riskLevel]="analysisResult.prediction"
+          [targetLabel]="analysisResult.target_label">
         </app-xai-highlighter>
-
 
         <div *ngIf="analysisResult.prediction !== 'No Risk'" class="support-resources animate-slide-up">
           <div class="support-header">
@@ -72,12 +63,12 @@
             <div class="helpline-card">
               <div class="helpline-info">
                 <h5>CCC Line</h5>
-                <p>24/7 free crisis support and relationship counseling.</p>
+                <p>Free confidential telephone counselling, Mon–Sun 9am to 5pm.</p>
               </div>
               <div class="helpline-action">
                 <span class="phone-number">1333</span>
                 <div class="action-links">
-                  <a href="https://1333.lk/" target="_blank" class="web-link">Visit Website</a>
+                  <a href="https://cccline.org" target="_blank" class="web-link">Visit Website</a>
                   <a href="tel:1333" class="call-btn">Call Now</a>
                 </div>
               </div>
@@ -85,8 +76,7 @@
           </div>
 
           <div class="disclaimer-box">
-            <p>If you are in immediate danger, please contact local emergency services or visit the nearest hospital.
-            </p>
+            <p>If you are in immediate danger, please contact local emergency services or visit the nearest hospital.</p>
           </div>
         </div>
       </div>

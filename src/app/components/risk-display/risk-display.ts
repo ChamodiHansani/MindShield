@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
 import { ApiService } from '../../services/api.service';
 import { RiskResult } from '../../models/risk-result.model';
-import { RouterLink } from '@angular/router';
-import { XaiHighlighter } from '../xai-highlighter/xai-highlighter';import { finalize } from 'rxjs/operators';
+import { XaiHighlighter } from '../xai-highlighter/xai-highlighter';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-risk-display',
@@ -12,7 +12,6 @@ import { XaiHighlighter } from '../xai-highlighter/xai-highlighter';import { fin
   imports: [
     CommonModule, 
     FormsModule, 
-    RouterLink,
     XaiHighlighter 
   ], 
   templateUrl: './risk-display.html',
@@ -28,39 +27,36 @@ export class RiskDisplay {
     private cdr: ChangeDetectorRef 
   ) {}
 
-onAnalyze() {
-  if (!this.userInput || !this.userInput.trim()) return;
+  onAnalyze() {
+    if (!this.userInput || !this.userInput.trim()) return;
 
-  this.isLoading = true;
-  this.analysisResult = undefined;
-
-  const inputText = this.userInput;
-
-  this.apiService.analyzeText(inputText)
-    .pipe(
-      finalize(() => {
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      })
-    )
-    .subscribe({
-      next: (data) => {
-        console.log('Data arrived from Python:', data);
-        this.analysisResult = data;
-        // no need to set isLoading=false here anymore (finalize will do it)
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('API Error:', err);
-        // finalize will still run and stop loading
-      }
-    });
-}
-
-onInputChange() {
-  if (!this.userInput?.trim()) {
+    this.isLoading = true;
     this.analysisResult = undefined;
-  }
-}
 
+    const inputText = this.userInput;
+
+    this.apiService.analyzeText(inputText)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (data) => {
+          console.log('Data arrived from Python:', data);
+          this.analysisResult = data;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('API Error:', err);
+        }
+      });
+  }
+
+  onInputChange() {
+    if (!this.userInput.trim()) {
+      this.analysisResult = undefined;
+    }
+  }
 }

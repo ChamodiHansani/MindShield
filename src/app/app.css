@@ -84,7 +84,8 @@
   align-items: center;
   padding: 6px 14px;
   border-radius: 20px;
-  transition: color 0.2s, background 0.2s;
+  border: 1px solid transparent;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
   letter-spacing: 0.01em;
 }
 
@@ -99,25 +100,26 @@
   font-weight: 600;
 }
 
-/* ── Intelligence pill ── */
-.nav-links li:last-child a {
+/* ── Intelligence pill (2nd item) ── */
+.nav-links li:nth-child(2) a {
   color: #a8d5b5;
-  border: 1px solid rgba(168, 213, 181, 0.3);
+  border-color: rgba(168, 213, 181, 0.3);
   padding: 6px 16px;
 }
 
-.nav-links li:last-child a:hover {
+.nav-links li:nth-child(2) a:hover {
   background: rgba(168, 213, 181, 0.12);
   border-color: rgba(168, 213, 181, 0.55);
   color: #c5e8d0;
 }
 
-.nav-links li:last-child a.active {
+.nav-links li:nth-child(2) a.active {
   background: rgba(168, 213, 181, 0.2);
   border-color: #a8d5b5;
   color: #ffffff;
 }
 
+/* ── Page wrapper ── */
 .page-wrapper {
   background: #f0f7f3;
   min-height: calc(100vh - 68px);
