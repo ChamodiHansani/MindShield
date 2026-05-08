@@ -85,7 +85,7 @@ async def predict(request: PredictionRequest):
             norm_text,
             return_tensors="pt",
             truncation=True,
-            max_length=512,
+            max_length=128,
             padding=True
         ).to(device)
 
@@ -130,7 +130,7 @@ async def explain(request: ExplainRequest):
             device=device,
             target_label=request.target_label,
             top_k=150,           # Increased to accommodate longer paragraphs
-            max_length=256       # Reduced to 256 to prevent gradient dilution
+            max_length=128       # Reduced to 128 to prevent gradient dilution
         )
 
         return {"normalized_text": norm_text, "highlights": highlights}
@@ -145,3 +145,6 @@ async def health():
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+
+# if __name__ == "__main__":
+#     uvicorn.run(app, host="0.0.0.0", port=7860, log_level="info")
